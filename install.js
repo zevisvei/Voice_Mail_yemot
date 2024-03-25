@@ -10,7 +10,7 @@ let request = JSON.parse(UrlFetchApp.fetch(`${url_yemot_api}UploadTextFile`, opt
 let ymt_Ext_2 = JSON.parse(UrlFetchApp.fetch(`${url_yemot_api}UploadTextFile?token=${token}&what=ivr2:/2/ext.ini&contents=title=ניתוק${newline}type=hangup`));
 let ymt_Ext_3 = JSON.parse(UrlFetchApp.fetch(`${url_yemot_api}UploadTextFile?token=${token}&what=ivr2:/3/ext.ini&contents=type=tzintuk${newline}title=הרשמה לצינתוקים${newline}list_tzintuk=1${newline}tzintuk_end=/0`));
 let ymt_enterid = getContacts();
-let ymt_tts = JSON.parse(UrlFetchApp.fetch(`${url_yemot_api}UploadTextFile?token=${token}&what=ivr2:/1/M1012.tts&contents=השיחה מועברת לתא הקולי. הגעתם לתא הקולי של טלפון מספר ${num}. נא להשאיר הודעה אחרי הישמע הצליל`));
+///let ymt_tts = JSON.parse(UrlFetchApp.fetch(`${url_yemot_api}UploadTextFile?token=${token}&what=ivr2:/1/M1012.tts&contents=השיחה מועברת לתא הקולי. הגעתם לתא הקולי של טלפון מספר ${num}. נא להשאיר הודעה אחרי הישמע הצליל`));
 let ymt_Create_Template = JSON.parse(UrlFetchApp.fetch(`${url_yemot_api}CreateTemplate?token=${token}&description=מספרים מורשים לכניסה`));
 let add_num_to_Template = JSON.parse(UrlFetchApp.fetch(`${url_yemot_api}UpdateTemplateEntry?token=${token}&templateId=${ymt_Create_Template.templateId}&phone=0${get_users_num_from_Spreadsheet}&name=מספר בעל המערכת`));
 let template_num = JSON.parse(UrlFetchApp.fetch(`${url_yemot_api}GetTemplates?token=${token}`))
@@ -18,7 +18,41 @@ let menu = JSON.parse(UrlFetchApp.fetch(`${url_yemot_api}UploadTextFile?token=${
 ));
 set_Triggers()
 }
-///צריך עדיין למצוא דרך להחליף את ההודעת מערכת בשלוחת ההקלטות
+
+function uploadFile_messeg() {
+  let ui = SpreadsheetApp.getUi();
+
+  let htmlContent = HtmlService.createHtmlOutput(`
+    
+<!DOCTYPE html>
+<html dir="rtl">
+<!-- B.H. -->
+<head>
+    <meta charset="utf-8" />
+    <title>API Upload test</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="icon"  type="image/png"  href="res/icon64x64.png" />
+	<meta name="robots" content="noindex, nofollow" />
+</head>
+<body>
+    <p>B.H.</p>
+    <form action="https://www.call2all.co.il/ym/api/UploadFile" method="POST" enctype="multipart/form-data" target="_blank">
+            <input type="hidden" name="token" value="${token}" />
+            <input type="hidden" name="path" value="ivr2:/0/M1012.wav" />
+        </p>
+            <input type="file" name="upload" accept="audion/*" />
+        </p>
+        <p>
+            <label for="convert-audio">המרת אודיו:</label>
+            <input id="convert-audio" name="convertAudio" type="checkbox" value="1" />
+        </p>
+        <p>
+            <input type="submit" name="submit" />
+        </p>
+    </form>
+</body>
+</html>`)
+let result = ui.showModalDialog((htmlContent), "העלאת קובץ פתיח");}
 
 function set_Triggers(){
   ScriptApp.getProjectTriggers().forEach(trigger => ScriptApp.deleteTrigger(trigger));
