@@ -24,17 +24,26 @@ function main(){
   let time_missed_call = missed_calls_let[2].split(":")
   let gap_mail_laste_missed_call = Get_the_gap(parseInt(date_missed_call[0], 10), parseInt(time[0], 10), parseInt(time[1], 10),gap_mail_missed_call)
   let gap_Tzintuk_2_laste_missed_call = Get_the_gap(parseInt(date_missed_call[0], 10), parseInt(time[0], 10), parseInt(time[1], 10), gap_Tzintuk_2_missed_call)
+  let gap_Tzintuk_laste_missed_call = Get_the_gap(parseInt(date_missed_call[0], 10), parseInt(time[0], 10), parseInt(time[1], 10), gap_Tzintuk_missed_call)
 
-  if ((gap_mail_last_meesege=== "run" && CheckIfFilewasplayed_let === "run") && get_lest_meesege_let[1] === missed_calls_let[0] && missed_calls_let[2]!== SpreadsheetApp.getActiveSheet().getRange('Log!A2').getValue()){
+  if ((gap_mail_last_meesege=== "run" && CheckIfFilewasplayed_let === "run") && get_lest_meesege_let[1] === missed_calls_let[0] && missed_calls_let[2]!== SpreadsheetApp.getActiveSheet().getRange('Log!A2').getValue() && parseInt(get_lest_meesege_let[0],10) !== SpreadsheetApp.getActiveSheet().getRange('Log!A3').getValue()){
     send_email("שיחה שלא נענתה והודעה חדשה",get_lest_meesege_let)
     let message_num_v = SpreadsheetApp.getActiveSheet().getRange('Log!A2').setValue(missed_calls_let[2])
   }else if (gap_mail_laste_missed_call === "run" && missed_calls_let[2]!== SpreadsheetApp.getActiveSheet().getRange('Log!A2').getValue()){
     send_email("שיחה שלא נענתה", [" ",missed_calls_let[0],missed_calls_let[1]+" " + missed_calls_let[2]])
      let message_num_v = SpreadsheetApp.getActiveSheet().getRange('Log!A2').setValue(missed_calls_let[2]);
+     if (insert_file_missed_call === "כן"){
+      insert_file_missed_calls(get_lest_meesege_let,missed_calls_let)
+      SpreadsheetApp.getActiveSheet().getRange('Log!A3').setValue(parseInt(get_lest_meesege_let[0],10)+1);
+     }
   }
-  if ((gap_Tzintuk_last_meesege === "run" && CheckIfFilewasplayed_let === "run")||(gap_Tzintuk_2_laste_missed_call === "run" && get_lest_meesege_let[1]!== missed_calls_let[0])){
+  if ((gap_Tzintuk_last_meesege === "run" && CheckIfFilewasplayed_let === "run" && parseInt(get_lest_meesege_let[0],10) !== SpreadsheetApp.getActiveSheet().getRange('Log!A3').getValue())||(gap_Tzintuk_2_laste_missed_call === "run" && get_lest_meesege_let[1]!== missed_calls_let[0]) && (insert_file_missed_calls !== "כן" || CheckIfFilewasplayed_let === "run")){
   RunTzintuk()
   let message_num_c = SpreadsheetApp.getActiveSheet().getRange('Log!B2').setValue(missed_calls_let[2]);
+  }
+  if (gap_Tzintuk_laste_missed_call === "run" && missed_calls_let[2]!== SpreadsheetApp.getActiveSheet().getRange('Log!A4').getValue()){
+    RunTzintuk()
+    SpreadsheetApp.getActiveSheet().getRange('Log!A4').setValue(missed_calls_let[2])
   }
 }
 
@@ -95,6 +104,8 @@ function Get_the_gap(messeg_day, message_houers,messeg_min, gap){
 function send_email(title_to_send, get_lest_meesege_let){
 let title;
 let body;
+let replay;
+let options;
 const user = Session.getActiveUser().getEmail();
 if (get_name(get_lest_meesege_let[1])[0] !== ""){
 title = `${title_to_send} מאת ${get_name(get_lest_meesege_let[1])[0]} מטלפון מספר ${get_lest_meesege_let[1]} בתאריך ${get_lest_meesege_let[2]}`
@@ -102,14 +113,28 @@ title = `${title_to_send} מאת ${get_name(get_lest_meesege_let[1])[0]} מטל�
 title = `${title_to_send} מאת ${get_lest_meesege_let[1]} בתאריך ${get_lest_meesege_let[2]}`
 }
 if (get_name(get_lest_meesege_let[1])[1] !== ""){
-body = `<a href="tel:${get_lest_meesege_let[1]}"><img src="https://play.google.com/store/apps/details?id=net.whatscall.freecall&hl=en_US"width="100" height="100"></a><br><a href="mailto:${get_name(get_lest_meesege_let[1])[1]}?subject=ראיתי%20שהתקשרת%20אלי&body=במה%20העניין?"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Gmail_icon_%282020%29.svg/200px-Gmail_icon_%282020%29.svg.png" alt="Send Email" width="100" height="75"></a>`
+body = `<a href="tel:${get_lest_meesege_let[1]}"><img src="https://github.com/zevisvei/Voice_Mail_yemot/blob/main/phone.gif?raw=true" width="100" height="100"></a><a href="mailto:${get_name(get_lest_meesege_let[1])[1]}?subject=ראיתי%20שהתקשרת%20אלי&body=במה%20העניין?"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Gmail_icon_%282020%29.svg/200px-Gmail_icon_%282020%29.svg.png" alt="Send Email" width="100" height="75"></a><a href="https://wa.me/+972${get_lest_meesege_let[1]}?text=ראיתי%20שהתקשרת%20אלי%20במה%20העניין?"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/220px-WhatsApp.svg.png" alt="Send watsapp" width="100" height="100"></a><a href="t.me/+972${get_lest_meesege_let[1]}"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Telegram_2019_Logo.svg/70px-Telegram_2019_Logo.svg.png" alt="Send telegram" width="100" height="100"></a>
+`
+replay = get_name(get_lest_meesege_let[1])[1]
 }else{
 body = `<a href="tel:${get_lest_meesege_let[1]}">call me back</a>`
+replay = user
 }
-let options = {name:"VoiceMail", htmlBody: body}
+if (title_to_send === "שיחה שלא נענתה והודעה חדשה"){
+  let file_to_send = UrlFetchApp.fetch(`${url_yemot_api}DownloadFile?token=${token}&path=ivr2:/0/${get_lest_meesege_let[0]}.wav`).getBlob();
+  options = {name:"VoiceMail", htmlBody: body, replyTo:replay, attachments: [{
+      fileName: "הודעת תא קולי.wav",
+      content: file_to_send.getBytes(),
+      mimeType: file_to_send.getContentType()
+    }]} 
+}
+else {
+  options = {name:"VoiceMail", htmlBody: body, replyTo:replay} 
+}
 GmailApp.sendEmail(user, title, body, options);
 /*
 `<a href="mailto:${contacts_email}&subject=${subject}&body=${body}">Send Email</a>`
+<a href="sms:${get_lest_meesege_let[1]}&body=במה%20העניין?"><img src="https://github.com/zevisvei/Voice_Mail_yemot/blob/main/chat.gif?raw=true" alt="send sms" width="100" height="100"></a>
 <a href="https://www.w3schools.com">
 <img src="w3html.gif" alt="W3Schools.com" width="100" height="132">
 </a>
@@ -166,8 +191,8 @@ function get_name(fone_number) {
 }
 
 
-function insert_file_missed_calls(get_lest_meesege_let){
-  tts_missed_calls = JSON.parse(UrlFetchApp.fetch(`${url_yemot_api}UploadTextFile?token=${token}&what=ivr2:/1/${parseInt(get_lest_meesege_let[0],10)+1}.tts&contents=שיחה שלא נענתה מאת ${missed_calls_let[0]} בשעה ${missed_calls_let[2]}`));
+function insert_file_missed_calls(get_lest_meesege_let,missed_calls_let){
+  tts_missed_calls = JSON.parse(UrlFetchApp.fetch(`${url_yemot_api}UploadTextFile?token=${token}&what=ivr2:/0/${parseInt(get_lest_meesege_let[0],10)+1}.tts&contents=שיחה שלא נענתה מאת ${missed_calls_let[0]} בשעה ${missed_calls_let[2]}`));
 }
 ///לשנות את הצינתוק בשיחה שלא נענתה לכל זמן שהמשתמש לא התקשר אולי לשנות גם את הזיהוי האם המשתמש האזין להודעה לפי זה
 ///הוספה לאקסל של צינתוקים בשביל השיחות שלא נענו
