@@ -1,35 +1,7 @@
-function mailtalk() {
-  test_token();
-  let status_yemot = yemot_online();
-  if (status_yemot === 'OK') {
-    check_Actions_busy();
-    //if (if_night_Morning === true) {
-    import_message()
-    if (logger_to_support === true) {
-      logger_to_support_team()
-    }
-    //} else {
-    //Logger.log("לילה טוב..")
-    //}
-  }
-}
-function yemot_online() {
-  let yemot_online = JSON.parse(UrlFetchApp.fetch(`${url_yemot_api}GetSession?token=${token_yemot}`));
-  Logger.log("server yemot_online=" + yemot_online.responseStatus);
-  return yemot_online.responseStatus;
-}
-
-
- 
-
-
 function test_token() {
-  let sf = SpreadsheetApp.getActiveSheet().getRange("Mailtalk!B125").getValue();
-  if (sf < 5) {
-    let req = JSON.parse(UrlFetchApp.fetch(`https://call2all.co.il/ym/api/GetSession?token=${token_yemot}`))
-    Logger.log("test_token.req=" + req.responseStatus)
-    if (req.responseStatus === 'OK') {
-      SpreadsheetApp.getActiveSheet().getRange("Mailtalk!B125").setValue(0);
+  if (log.falseCounter < 5) {
+    if (GetSession(log.token)) {
+      logSheet.getRange("B8").setValue(0)
       Logger.log("it's ok");
     } else {
       login_token()
@@ -37,22 +9,21 @@ function test_token() {
   } else {
     Logger.log(`המערכת זיהתה מספר רב של נסיונות כושלים באימות מול שרתי חברת ימות המשיח, דבר המעיד על שגיאה באמצעי הזיהוי שהזנתם, על מנת למנוע חסימות של היישומים ע"י חברת ימות המשיח, התקנת היישום בחשבונכם בוטלה, ועליכם לתקן את אמצעי הזיהוי ולבצע התקנה מחדש של המערכת`);
     deleteTrigger()
-    let recipient = Session.getActiveUser().getEmail();
+    let recipient = settings.mailAddress;
     let fileName = SpreadsheetApp.getActiveSheet().getParent().getName();
     let fileUrl = SpreadsheetApp.getActiveSheet().getParent().getUrl();
     let owner = SpreadsheetApp.getActiveSheet().getParent().getOwner().getEmail();
-    let GmailApp_send = GmailApp.sendEmail(recipient, "היי, יש בעיה בהגדרת הטוקן!", `המערכת זיהתה מספר רב של נסיונות כושלים באימות מול שרתי חברת ימות המשיח ביישום מיילטוק שבקובץ ${fileName}, הנמצא בבעלות המשתמש ${owner}. דבר המעיד על שגיאה באמצעי הזיהוי שהזנתם במערכת, על מנת למנוע חסימות של היישומים ע"י חברת ימות המשיח, התקנת היישום בחשבונכם בוטלה, ועליכם לתקן את אמצעי הזיהוי ולבצע התקנה מחדש של המערכת.
+    let GmailApp_send = GmailApp.sendEmail(recipient, "היי, יש בעיה בהגדרת הטוקן!", `המערכת זיהתה מספר רב של נסיונות כושלים באימות מול שרתי חברת ימות המשיח ביישום voicemail שבקובץ ${fileName}, הנמצא בבעלות המשתמש ${owner}. דבר המעיד על שגיאה באמצעי הזיהוי שהזנתם במערכת, על מנת למנוע חסימות של היישומים ע"י חברת ימות המשיח, התקנת היישום בחשבונכם בוטלה, ועליכם לתקן את אמצעי הזיהוי ולבצע התקנה מחדש של המערכת.
 לינק לקובץ ההגדרות של היישום: ${fileUrl}`);
     throw new Error("Script stopped");
   }
 }
 
-
 function login_token() {
   let req;
   let counter = 0;
   while (req === undefined || req.responseStatus !== "OK") {
-    req = JSON.parse(UrlFetchApp.fetch(`https://call2all.co.il/ym/api/Login?username=${user}&password=${password}`));
+    req = JSON.parse(UrlFetchApp.fetch(`https://call2all.co.il/ym/api/Login?username=${settings.num}&password=${settings.password}`));
     Logger.log(req.responseStatus);
     counter++;
     if (counter >= 5) {
@@ -60,13 +31,15 @@ function login_token() {
     }
   }
   if (counter >= 5) {
-    SpreadsheetApp.getActiveSheet().getRange("Mailtalk!B125").setValue(SpreadsheetApp.getActiveSheet().getRange("Mailtalk!B125").getValue() + 1);
+    logSheet.getRange("B8").setValue(log.falseCounter + 1)
     set_token();
     return;
   }
   Logger.log("req.token=" + req.token);
-  SpreadsheetApp.getActiveSheet().getRange("Mailtalk!B124").setValue(req.token);
-  SpreadsheetApp.getActiveSheet().getRange("Mailtalk!B125").setValue(0)
+  let token = req.token
+  log["token"] = token
+  logSheet.getRange("B7").setValue(token)
+  logSheet.getRange("B8").setValue(0)
 }
 
 function set_token() {
@@ -75,7 +48,7 @@ function set_token() {
   
     העתיקו את הלינק המופיע בשורה הבאה אל כרטיסיה חדשה בדפדפן שלכם:
   
-    https://call2all.co.il/ym/api/Login?username=${user}&password=${password}
+    https://call2all.co.il/ym/api/Login?username=${settings.num}&password=${settings.password}
   
     את הטקסט שיופיע בדף שייפתח הכניסו בתיבה שלמטה (שימו 💖 חשוב שתכניסו את הטקסט המלא!!)
     
@@ -92,8 +65,9 @@ function set_token() {
   }
   let obj = JSON.parse(response_text)
   if (obj.responseStatus === 'OK') {
-    SpreadsheetApp.getActiveSheet().getRange("Mailtalk!B124").setValue(obj.token)
-    SpreadsheetApp.getActiveSheet().getRange("Mailtalk!B125").setValue(0)
+    logSheet.getRange("B7").setValue(obj.token)
+    log["token"] = obj.token
+    logSheet.getRange("B8").setValue(0)
     Logger.log(obj.token);
     ui.alert(`הגדרה הצליחה!`, `הגדרת הטוקן הושלמה.
 הריצו שוב את ההתקנה ע"מ להתקין את היישום.`, ui.ButtonSet.OK);
@@ -101,3 +75,11 @@ function set_token() {
     ui.alert('בעיה', 'תשובת השרת של ימות המשיח אינה תקינה, ייתכן והסיסמה או מספר המערכת אינם נכונים או שהמערכת חסומה.', ui.ButtonSet.OK);
   }
 }
+
+function deleteTrigger() {
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    ScriptApp.deleteTrigger(triggers[i]);
+  }
+}
+
